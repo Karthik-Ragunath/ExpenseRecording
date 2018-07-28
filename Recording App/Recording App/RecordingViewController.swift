@@ -28,6 +28,13 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     var restaurantId = String()
     var restaurantName = String()
     var proximity = Double()
+    
+    var location = String()
+    var itemName = String()
+    var quantity = String()
+    var price = String()
+    var category = String()
+    var amount = String()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -142,6 +149,8 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     
     func partsOfSpeech(for text: String)
     {
+        var numberFormatterCount = 0
+        var nounCount = 0
         let tagger = NSLinguisticTagger(tagSchemes: [NSLinguisticTagScheme.tokenType, .language, .lexicalClass, .nameType, .lemma], options: 0)
         let options: NSLinguisticTagger.Options = [NSLinguisticTagger.Options.omitPunctuation, NSLinguisticTagger.Options.omitWhitespace, .joinNames]
         let range = NSRange(location: 0, length: text.utf16.count)
@@ -156,6 +165,14 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                         if let intVal = Int(word)
                         {
                             print("This is a number in method: \(intVal)")
+                            if numberFormatterCount == 0
+                            {
+                                self.quantity = String(intVal)
+                            }
+                            else
+                            {
+                                self.price = String(intVal)
+                            }
                         }
                         else
                         {
@@ -164,7 +181,16 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                             numberFormatter.numberStyle = .spellOut
                             let number = numberFormatter.number(from: word)
                             print("The number is \(number ?? 0)")
+                            if numberFormatterCount == 0
+                            {
+                                self.quantity = number?.stringValue ?? "0"
+                            }
+                            else
+                            {
+                                self.price = number?.stringValue ?? "0"
+                            }
                         }
+                        numberFormatterCount += 1
                     }
                     if tag.rawValue == "Noun"
                     {
@@ -172,6 +198,10 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                         if lowerCasedWord != "expense"
                         {
                             print("The noun is \(lowerCasedWord)")
+                            if nounCount == 0
+                            {
+                                self.itemName = lowerCasedWord
+                            }
                         }
                     }
                 }
@@ -180,9 +210,36 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             print("Cannot be exexuted on previous versions")
             // Fallback on earlier versions
         }
-        let lattitude = "\(self.locationCoordinate.latitude)"
-        let longitude = "\(self.locationCoordinate.longitude)"
-        getNearbyRestaurants(latitude: lattitude, longitude: longitude)
+        if numberFormatterCount <= 1
+        {
+            let lattitude = "\(self.locationCoordinate.latitude)"
+            let longitude = "\(self.locationCoordinate.longitude)"
+            getNearbyRestaurants(latitude: lattitude, longitude: longitude)
+        }
+        else
+        {
+            self.location = "Shop"
+            self.category = "Other Category"
+            let intQuantity = Int(self.quantity)
+            let intPrice = Int(self.price)
+            let intAmount = (intQuantity ?? 0) * (intPrice ?? 0)
+            self.amount = "\(intAmount)"
+            print(self.location)
+            print(self.itemName)
+            print(self.category)
+            print(self.quantity)
+            print(self.price)
+            print(self.amount)
+            //            let expenseViewController = ExpenseViewController()
+            //            expenseViewController.price = self.price
+            //            expenseViewController.location = self.location
+            //            expenseViewController.quantity = self.quantity
+            //            expenseViewController.itemName = self.itemName
+            //            expenseViewController.category = self.category
+            //            expenseViewController.amount = self.amount
+//            self.navigationController?.pushViewController(expenseViewController, animated: true)
+            self.dismiss(animated: true, completion: .none)
+        }
     }
     
     func getNearbyRestaurants(latitude: String, longitude: String)
@@ -240,12 +297,35 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                     }
                     print("The restaurant name is \(self.restaurantName)")
                     print("The restaurant id is \(self.restaurantId)")
+                    self.location = self.restaurantName
+                    self.category = "Food"
+                    let quantityInt = Int(self.quantity)
+                    self.price = "40"
+                    //With Restaurant Id forward make /dailymenu API to get cost
+                    //    https://developers.zomato.com/api/v2.1/dailymenu?res_id=16759908
+                    //But this API only works if we become partner of Zomato
+                    let amount = (quantityInt ?? 0) * 40
+                    self.amount = String(amount)
                 }
                 catch
                 {
                     print("Error occured")
                 }
             }
+            print(self.location)
+            print(self.itemName)
+            print(self.category)
+            print(self.quantity)
+            print(self.price)
+            print(self.amount)
+            //            let expenseViewController = ExpenseViewController()
+            //            expenseViewController.price = self.price
+            //            expenseViewController.location = self.location
+            //            expenseViewController.quantity = self.quantity
+            //            expenseViewController.itemName = self.itemName
+            //            expenseViewController.category = self.category
+            //            expenseViewController.amount = self.amount
+            //            self.navigationController?.pushViewController(expenseViewController, animated: true)
             self.dismiss(animated: true, completion: .none)
         }.resume()
     }
