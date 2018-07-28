@@ -105,7 +105,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let locValue: CLLocationCoordinate2D = manager.location?.coordinate else { return }
-        print("locations = \(locValue.latitude) \(locValue.longitude)")
         locationCoordinate = locValue
     }
     
@@ -114,48 +113,8 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
         stopRecording()
         if let liveString = transcriptionOutputLabel.text
         {
-            let strArr = liveString.split(separator: " ")
-            for item in strArr
-            {
-                let components = item.components(separatedBy: CharacterSet.decimalDigits.inverted)
-                let part = components.joined()
-                if let intVal = Int(part)
-                {
-                    print("This is a number \(intVal)")
-                }
-                else
-                {
-                    let lowerCased = item.lowercased()
-                    switch lowerCased
-                    {
-                    case "zero":
-                        print("0")
-                    case "one":
-                        print("1")
-                    case "two":
-                        print("2")
-                    case "three":
-                        print("3")
-                    case "four":
-                        print("4")
-                    case "five":
-                        print("5")
-                    case "six":
-                        print("6")
-                    case "seven":
-                        print("7")
-                    case "eight":
-                        print("8")
-                    case "nine":
-                        print("9")
-                    default:
-                        print("default")
-                    }
-                }
-            }
             partsOfSpeech(for: liveString)
         }
-        //        dismiss(animated: true, completion: .none)
     }
     
     func partsOfSpeech(for text: String)
@@ -175,7 +134,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                     {
                         if let intVal = Int(word)
                         {
-                            print("This is a number in method: \(intVal)")
                             if numberFormatterCount == 0
                             {
                                 self.quantity = String(intVal)
@@ -191,7 +149,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                             numberFormatter.locale = Locale(identifier: "en_US_POSIX")  // if you dont set locale it will use current locale so it wont detect one if the language it is not english at the devices locale
                             numberFormatter.numberStyle = .spellOut
                             let number = numberFormatter.number(from: word)
-                            print("The number is \(number ?? 0)")
                             if numberFormatterCount == 0
                             {
                                 self.quantity = number?.stringValue ?? "0"
@@ -208,10 +165,10 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                         let lowerCasedWord = word.lowercased()
                         if lowerCasedWord != "expense"
                         {
-                            print("The noun is \(lowerCasedWord)")
                             if nounCount == 0
                             {
                                 self.itemName = lowerCasedWord
+                                nounCount += 1
                             }
                         }
                     }
@@ -235,13 +192,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
             let intPrice = Int(self.price)
             let intAmount = (intQuantity ?? 0) * (intPrice ?? 0)
             self.amount = "\(intAmount)"
-            print(self.location)
-            print(self.itemName)
-            print(self.category)
-            print(self.quantity)
-            print(self.price)
-            print(self.amount)
-//            let expenseViewController = ExpenseViewController()
             expenseViewController.price = self.price
             expenseViewController.location = self.location
             expenseViewController.quantity = self.quantity
@@ -250,7 +200,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
             expenseViewController.amount = self.amount
             expenseViewController.dismissProtocol = self
             let navController = UINavigationController(rootViewController: self.expenseViewController)
-            self.navigationController?.present(navController, animated: true, completion: nil)//            self.navigationController?.pushViewController(expenseViewController, animated: true)
+            self.navigationController?.present(navController, animated: true, completion: nil)
         }
     }
     
@@ -267,11 +217,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
         request.setValue(authentication, forHTTPHeaderField: "user-key")
         session.dataTask(with: request as URLRequest)
         { (data, response, error) in
-            if let responseValue = response
-            {
-                print("The response is: ")
-                print(responseValue)
-            }
             if let dataResposne = data
             {
                 do
@@ -279,7 +224,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                     let json = try JSONSerialization.jsonObject(with: dataResposne, options: JSONSerialization.ReadingOptions.mutableContainers)
                     if let dictionary = json as? NSDictionary
                     {
-                        print(dictionary)
                         if let nearByRestaurants = dictionary["nearby_restaurants"] as? [NSDictionary]
                         {
                             for nearByRestaurantNow in nearByRestaurants
@@ -307,8 +251,8 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                             }
                         }
                     }
-                    print("The restaurant name is \(self.restaurantName)")
-                    print("The restaurant id is \(self.restaurantId)")
+//                    print("The restaurant name is \(self.restaurantName)")
+//                    print("The restaurant id is \(self.restaurantId)")
                     self.location = self.restaurantName
                     self.category = "Food"
                     let quantityInt = Int(self.quantity)
@@ -324,12 +268,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
                     print("Error occured")
                 }
             }
-            print(self.location)
-            print(self.itemName)
-            print(self.category)
-            print(self.quantity)
-            print(self.price)
-            print(self.amount)
             self.expenseViewController.price = self.price
             self.expenseViewController.location = self.location
             self.expenseViewController.quantity = self.quantity
@@ -339,7 +277,6 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
             self.expenseViewController.dismissProtocol = self
             let navController = UINavigationController(rootViewController: self.expenseViewController)
             self.navigationController?.present(navController, animated: true, completion: nil)
-            //            self.navigationController?.pushViewController(self.expenseViewController, animated: true)
         }.resume()
     }
 }
