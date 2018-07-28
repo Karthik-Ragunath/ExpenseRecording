@@ -25,6 +25,9 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     
     var transcriptionOutputLabel = UILabel()
     var authentication = "901d1895824478ac0d0bfde1be6d6cf7"
+    var restaurantId = String()
+    var restaurantName = String()
+    var proximity = Double()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -184,6 +187,9 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     
     func getNearbyRestaurants(latitude: String, longitude: String)
     {
+        let locationLatitude = Double(latitude)
+        let locationLongitude = Double(longitude)
+        proximity = 100000000
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
         let urlString = "https://developers.zomato.com/api/v2.1/geocode?lat=" + latitude + "&lon=" + longitude
         let request = NSMutableURLRequest()
@@ -201,11 +207,39 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             {
                 do
                 {
-                    var json = try JSONSerialization.jsonObject(with: dataResposne, options: JSONSerialization.ReadingOptions.mutableContainers)
+                    let json = try JSONSerialization.jsonObject(with: dataResposne, options: JSONSerialization.ReadingOptions.mutableContainers)
                     if let dictionary = json as? NSDictionary
                     {
                         print(dictionary)
+                        if let nearByRestaurants = dictionary["nearby_restaurants"] as? [NSDictionary]
+                        {
+                            for nearByRestaurantNow in nearByRestaurants
+                            {
+                                if let nearByRestaurant = nearByRestaurantNow["restaurant"] as? NSDictionary
+                                {
+                                    let restaurantNameNow = nearByRestaurant["name"] as! String
+                                    let restaurantIdNow = nearByRestaurant["id"] as! String
+                                    if let locationDict = nearByRestaurant["location"] as? NSDictionary
+                                    {
+                                        let latitudeNow = locationDict["latitude"]
+                                        let longitudeNow = locationDict["longitude"]
+                                        let currentLatitudeDouble = Double(latitudeNow as! String)
+                                        let currentLongitudeDouble = Double(longitudeNow as! String)
+                                        let proximityNow = locationLatitude! - currentLatitudeDouble! + locationLongitude! - currentLongitudeDouble!
+                                        let absoluteProximityNow = abs(proximityNow)
+                                        if absoluteProximityNow < self.proximity
+                                        {
+                                            self.proximity = absoluteProximityNow
+                                            self.restaurantId = restaurantIdNow
+                                            self.restaurantName = restaurantNameNow
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+                    print("The restaurant name is \(self.restaurantName)")
+                    print("The restaurant id is \(self.restaurantId)")
                 }
                 catch
                 {
