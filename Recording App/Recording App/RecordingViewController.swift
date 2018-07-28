@@ -13,7 +13,12 @@ import Speech
 import MapKit
 import CoreLocation
 
-class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
+protocol DismissProtocol
+{
+    func informDismissAction()
+}
+
+class RecordingViewController: UIViewController,  CLLocationManagerDelegate, DismissProtocol {
     
     let audioEngine = AVAudioEngine()
     let speechRecognizer = SFSpeechRecognizer()
@@ -22,6 +27,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     
     let locationManager = CLLocationManager()
     var locationCoordinate = CLLocationCoordinate2D()
+    let expenseViewController = ExpenseViewController()
     
     var transcriptionOutputLabel = UILabel()
     var authentication = "901d1895824478ac0d0bfde1be6d6cf7"
@@ -35,7 +41,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     var price = String()
     var category = String()
     var amount = String()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.white
@@ -58,6 +64,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                 [unowned self] (authStatus) in
                 switch authStatus
                 {
+                    
                 case .authorized:
                     do {
                         try self.startRecording()
@@ -73,6 +80,10 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
                 }
         }
     }
+
+    func informDismissAction() {
+        self.navigationController?.popViewController(animated: true)
+    }
     
     func setupTransctiptionOutputLabel()
     {
@@ -81,7 +92,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
         transcriptionOutputLabel.layer.borderColor = UIColor.black.cgColor
         transcriptionOutputLabel.layer.borderWidth = 2
         self.view.addSubview(transcriptionOutputLabel)
-    
+        
         let viewsDict = ["label": transcriptionOutputLabel]
         
         var constraints = [NSLayoutConstraint]()
@@ -144,7 +155,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             }
             partsOfSpeech(for: liveString)
         }
-//        dismiss(animated: true, completion: .none)
+        //        dismiss(animated: true, completion: .none)
     }
     
     func partsOfSpeech(for text: String)
@@ -230,15 +241,16 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             print(self.quantity)
             print(self.price)
             print(self.amount)
-            //            let expenseViewController = ExpenseViewController()
-            //            expenseViewController.price = self.price
-            //            expenseViewController.location = self.location
-            //            expenseViewController.quantity = self.quantity
-            //            expenseViewController.itemName = self.itemName
-            //            expenseViewController.category = self.category
-            //            expenseViewController.amount = self.amount
-//            self.navigationController?.pushViewController(expenseViewController, animated: true)
-            self.dismiss(animated: true, completion: .none)
+//            let expenseViewController = ExpenseViewController()
+            expenseViewController.price = self.price
+            expenseViewController.location = self.location
+            expenseViewController.quantity = self.quantity
+            expenseViewController.itemName = self.itemName
+            expenseViewController.category = self.category
+            expenseViewController.amount = self.amount
+            expenseViewController.dismissProtocol = self
+            let navController = UINavigationController(rootViewController: self.expenseViewController)
+            self.navigationController?.present(navController, animated: true, completion: nil)//            self.navigationController?.pushViewController(expenseViewController, animated: true)
         }
     }
     
@@ -318,15 +330,16 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             print(self.quantity)
             print(self.price)
             print(self.amount)
-            //            let expenseViewController = ExpenseViewController()
-            //            expenseViewController.price = self.price
-            //            expenseViewController.location = self.location
-            //            expenseViewController.quantity = self.quantity
-            //            expenseViewController.itemName = self.itemName
-            //            expenseViewController.category = self.category
-            //            expenseViewController.amount = self.amount
-            //            self.navigationController?.pushViewController(expenseViewController, animated: true)
-            self.dismiss(animated: true, completion: .none)
+            self.expenseViewController.price = self.price
+            self.expenseViewController.location = self.location
+            self.expenseViewController.quantity = self.quantity
+            self.expenseViewController.itemName = self.itemName
+            self.expenseViewController.category = self.category
+            self.expenseViewController.amount = self.amount
+            self.expenseViewController.dismissProtocol = self
+            let navController = UINavigationController(rootViewController: self.expenseViewController)
+            self.navigationController?.present(navController, animated: true, completion: nil)
+            //            self.navigationController?.pushViewController(self.expenseViewController, animated: true)
         }.resume()
     }
 }
