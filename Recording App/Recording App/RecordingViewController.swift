@@ -24,6 +24,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
     var locationCoordinate = CLLocationCoordinate2D()
     
     var transcriptionOutputLabel = UILabel()
+    var authentication = "901d1895824478ac0d0bfde1be6d6cf7"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -133,7 +134,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             }
             partsOfSpeech(for: liveString)
         }
-        dismiss(animated: true, completion: .none)
+//        dismiss(animated: true, completion: .none)
     }
     
     func partsOfSpeech(for text: String)
@@ -176,8 +177,44 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate {
             print("Cannot be exexuted on previous versions")
             // Fallback on earlier versions
         }
+        let lattitude = "\(self.locationCoordinate.latitude)"
+        let longitude = "\(self.locationCoordinate.longitude)"
+        getNearbyRestaurants(latitude: lattitude, longitude: longitude)
     }
     
+    func getNearbyRestaurants(latitude: String, longitude: String)
+    {
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
+        let urlString = "https://developers.zomato.com/api/v2.1/geocode?lat=" + latitude + "&lon=" + longitude
+        let request = NSMutableURLRequest()
+        request.url = URL(string: urlString)
+        request.httpMethod = "GET"
+        request.setValue(authentication, forHTTPHeaderField: "user-key")
+        session.dataTask(with: request as URLRequest)
+        { (data, response, error) in
+            if let responseValue = response
+            {
+                print("The response is: ")
+                print(responseValue)
+            }
+            if let dataResposne = data
+            {
+                do
+                {
+                    var json = try JSONSerialization.jsonObject(with: dataResposne, options: JSONSerialization.ReadingOptions.mutableContainers)
+                    if let dictionary = json as? NSDictionary
+                    {
+                        print(dictionary)
+                    }
+                }
+                catch
+                {
+                    print("Error occured")
+                }
+            }
+            self.dismiss(animated: true, completion: .none)
+        }.resume()
+    }
 }
 
 extension RecordingViewController {
