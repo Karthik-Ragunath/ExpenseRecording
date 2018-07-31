@@ -128,10 +128,17 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
         if #available(iOS 11.0, *) {
             tagger.enumerateTags(in: range, unit: .word, scheme: .lexicalClass, options: options) { tag, tokenRange, _ in
                 if let tag = tag {
-                    let word = (text as NSString).substring(with: tokenRange)
+                    var word = (text as NSString).substring(with: tokenRange)
                     print("\(word): \(tag.rawValue)")
                     if tag.rawValue == "Number"
                     {
+                        if word.first == "."
+                        {
+                            let lowerBound = word.index(self.price.startIndex, offsetBy: 1)
+                            let upperBound = word.endIndex
+                            let substring = word[lowerBound..<upperBound]
+                            word = String(substring)
+                        }
                         if let intVal = Int(word)
                         {
                             if numberFormatterCount == 0
