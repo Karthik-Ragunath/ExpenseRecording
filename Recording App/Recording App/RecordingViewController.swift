@@ -91,6 +91,7 @@ class RecordingViewController: UIViewController,  CLLocationManagerDelegate, Dis
         transcriptionOutputLabel.textAlignment = .center
         transcriptionOutputLabel.layer.borderColor = UIColor.black.cgColor
         transcriptionOutputLabel.layer.borderWidth = 2
+        transcriptionOutputLabel.numberOfLines = 0
         self.view.addSubview(transcriptionOutputLabel)
         
         let viewsDict = ["label": transcriptionOutputLabel]

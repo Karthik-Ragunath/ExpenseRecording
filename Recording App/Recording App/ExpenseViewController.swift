@@ -29,7 +29,54 @@ class ExpenseViewController : UIViewController, UITableViewDataSource, UITableVi
     
     @objc func handleDoneTapped()
     {
-        self.dismiss(animated: true, completion: nil)
+        var jsonDict : Dictionary<String,Any> =   Dictionary()
+        jsonDict["category_id"] = "817923000000000448"
+        jsonDict["currency_id"] = "817923000000000099"
+        jsonDict["amount"] = self.amount
+        var jsonData : Data?
+        var jsonBody : NSString?
+        var param = String()
+        do
+        {
+            jsonData = try JSONSerialization.data(withJSONObject: jsonDict, options: JSONSerialization.WritingOptions.prettyPrinted)
+        }
+        catch
+        {}
+        if(jsonData != nil)
+        {
+            jsonBody = NSString(data: jsonData!, encoding: String.Encoding.utf8.rawValue)
+        }
+        if let jsonString = jsonBody, !(jsonString.length == 0)
+        {
+            jsonBody = jsonString.replacingOccurrences(of: "\n", with: " ") as NSString?
+            jsonBody = self.encodeString(string: jsonBody!)
+            
+            param += "JSONString=" + (jsonBody! as String)
+        }
+        
+        param      +=   "&scope=expenseapi"
+        param       =   param.replacingOccurrences(of: "\n", with: "")
+        let postData    =   param.data(using: String.Encoding.ascii, allowLossyConversion: true)
+        let urlString = "https://expense." + "zoho" + ".com/api/v1/expenses?organization_id=655605203&authtoken=958d81c8647a75c60f18d1bf2585fc3f"
+        let request = NSMutableURLRequest()
+        request.url = URL(string: urlString)
+        request.httpMethod = "POST"
+        request.httpBody = postData
+        request.setValue("zbios", forHTTPHeaderField: "X-ZB-Source")
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
+        session.dataTask(with: request as URLRequest)
+        { (data, response, error) in
+            if error == nil
+            {
+                print("Expense created")
+            }
+            else
+            {
+                print("Error occured")
+            }
+            self.dismiss(animated: true, completion: nil)
+        }.resume()
+//        self.dismiss(animated: true, completion: nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -39,6 +86,13 @@ class ExpenseViewController : UIViewController, UITableViewDataSource, UITableVi
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
+    }
+    
+    func encodeString(string:NSString) -> (NSString)
+    {
+        let allowedCharSet  =   CharacterSet(charactersIn:"=\"#%/<>?@\\^`{|}&+").inverted
+        let result          =   string.addingPercentEncoding(withAllowedCharacters: allowedCharSet)
+        return result! as (NSString)
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -114,6 +168,4 @@ class ExpenseViewController : UIViewController, UITableViewDataSource, UITableVi
         
         NSLayoutConstraint.activate(constraints)
     }
-    
-    
 }
